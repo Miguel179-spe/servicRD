@@ -3,160 +3,272 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Servicios RD | Publica tu Anuncio</title>
+    <title>Servicios RD | Panel de Anuncios</title>
+    <!-- Tailwind CSS para diseño moderno -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Iconos -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        body { background-color: #0f1115; color: white; font-family: sans-serif; }
-        .glass { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); }
-        .card:hover { transform: translateY(-5px); transition: 0.3s; border-color: #6366f1; }
+        body { background-color: #0f1115; color: white; overflow: hidden; }
+        .glass { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.08); }
+        .sidebar-btn { transition: 0.3s; border-radius: 12px; margin-bottom: 4px; }
+        .sidebar-btn:hover { background: rgba(99, 102, 241, 0.1); color: #818cf8; }
+        .sidebar-btn.active { background: linear-gradient(90deg, #4f46e5, #7c3aed); color: white; }
+        .card-glass { background: #161b26; border: 1px solid rgba(255,255,255,0.05); transition: 0.3s; }
+        .card-glass:hover { transform: translateY(-5px); border-color: #6366f1; box-shadow: 0 10px 30px -10px rgba(79, 70, 229, 0.3); }
+        
+        /* Scrollbar personalizada */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #2a3347; border-radius: 10px; }
+
+        @media (max-width: 768px) {
+            .app-container { flex-direction: column; overflow-y: auto; }
+            .sidebar { width: 100%; height: auto; border-right: none; border-bottom: 1px solid rgba(255,255,255,0.1); }
+            .content-area { height: auto; }
+        }
     </style>
 </head>
-<body>
+<body class="h-screen">
 
-    <!-- NAVBAR -->
-    <nav class="p-5 glass sticky top-0 z-50 mb-8">
-        <div class="max-w-6xl mx-auto flex justify-between items-center">
+<div class="flex h-full app-container">
+    
+    <!-- SIDEBAR (De tu primer modelo) -->
+    <aside class="sidebar w-72 h-full glass border-r border-white/10 flex flex-col shrink-0">
+        <div class="p-6">
             <h1 class="text-2xl font-black bg-gradient-to-r from-indigo-500 to-purple-500 bg-clip-text text-transparent">
                 SERVICIOS RD
             </h1>
-            <button onclick="toggleModal()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2 rounded-full font-bold transition">
-                <i class="fas fa-plus-circle mr-2"></i>Publicar
-            </button>
-        </div>
-    </nav>
-
-    <main class="max-w-6xl mx-auto px-4 pb-20">
-        <!-- BUSCADOR -->
-        <div class="mb-10">
-            <input type="text" id="searchInput" onkeyup="search()" placeholder="¿Qué servicio buscas? (Ej: Plomero, Pintor...)" 
-                class="w-full p-4 rounded-2xl bg-gray-800 border border-gray-700 text-white focus:ring-2 focus:ring-indigo-500 outline-none">
         </div>
 
-        <!-- GRILLA DE SERVICIOS -->
-        <div id="servicesGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <!-- Cargando... -->
-            <p class="text-center col-span-full text-gray-500">Cargando anuncios...</p>
-        </div>
-    </main>
-
-    <!-- MODAL FORMULARIO -->
-    <div id="modal" class="fixed inset-0 bg-black/90 hidden z-[100] flex items-center justify-center p-4">
-        <div class="bg-gray-900 border border-gray-700 p-8 rounded-3xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
-            <div class="flex justify-between items-center mb-6">
-                <h2 class="text-2xl font-bold">Crea tu publicación</h2>
-                <button onclick="toggleModal()" class="text-gray-400 hover:text-white text-2xl">&times;</button>
+        <div class="px-4 mb-4">
+            <div class="relative">
+                <i class="fas fa-search absolute left-3 top-3.5 text-gray-500 text-sm"></i>
+                <input type="text" id="searchInput" onkeyup="filterServices()" 
+                    class="w-full pl-10 pr-4 py-3 rounded-xl bg-gray-800/50 border border-gray-700 text-sm text-white focus:ring-2 focus:ring-indigo-500 outline-none" 
+                    placeholder="Buscar servicios...">
             </div>
-            
-            <form id="serviceForm" class="space-y-4">
-                <div>
-                    <label class="block text-sm text-gray-400 mb-1">Nombre del Servicio o Negocio</label>
-                    <input type="text" id="name" class="w-full p-3 rounded-xl bg-gray-800 border border-gray-700 text-white" required placeholder="Ej: Multiservicios Juan">
+        </div>
+
+        <nav class="flex-1 overflow-y-auto px-2 space-y-1" id="categoryList">
+            <!-- Categorías generadas por JS -->
+        </nav>
+
+        <div class="p-4 border-t border-white/5">
+            <p class="text-xs text-gray-500 text-center">© 2024 Servicios RD</p>
+        </div>
+    </aside>
+
+    <!-- CONTENIDO PRINCIPAL (Diseño Moderno) -->
+    <main class="content-area flex-1 flex flex-col h-full overflow-hidden bg-[#0f1115]">
+        
+        <!-- Top Header -->
+        <header class="p-6 flex justify-between items-center bg-[#0f1115]/50 backdrop-blur-md z-10">
+            <h2 id="currentCategoryTitle" class="text-2xl font-bold text-white">Todos los Servicios</h2>
+            <button onclick="toggleModal()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2.5 rounded-xl font-bold transition flex items-center shadow-lg shadow-indigo-500/20">
+                <i class="fas fa-plus-circle mr-2"></i>Publicar Anuncio
+            </button>
+        </header>
+
+        <!-- Grid de Cards -->
+        <section class="flex-1 overflow-y-auto p-6 pt-0">
+            <div id="servicesGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Se carga con JS -->
+                <div class="col-span-full text-center py-20 text-gray-500">
+                    <i class="fas fa-spinner fa-spin text-3xl mb-4"></i>
+                    <p>Cargando anuncios...</p>
                 </div>
+            </div>
+        </section>
+    </main>
+</div>
+
+<!-- MODAL FORMULARIO (Diseño Moderno) -->
+<div id="modal" class="fixed inset-0 bg-black/90 hidden z-[100] flex items-center justify-center p-4">
+    <div class="bg-gray-900 border border-gray-700 p-8 rounded-3xl w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-2xl">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-2xl font-bold text-white">Crea tu publicación</h2>
+            <button onclick="toggleModal()" class="text-gray-400 hover:text-white text-2xl">&times;</button>
+        </div>
+        
+        <form id="serviceForm" class="space-y-4">
+            <div>
+                <label class="block text-sm text-gray-400 mb-1">Nombre del Servicio o Negocio</label>
+                <input type="text" id="name" class="w-full p-3 rounded-xl bg-gray-800 border border-gray-700 text-white focus:border-indigo-500 outline-none" required placeholder="Ej: Juan Plomería">
+            </div>
+            <div>
+                <label class="block text-sm text-gray-400 mb-1">Categoría</label>
+                <select id="category" class="w-full p-3 rounded-xl bg-gray-800 border border-gray-700 text-white focus:border-indigo-500 outline-none"></select>
+            </div>
+            <div>
+                <label class="block text-sm text-gray-400 mb-1">Descripción corta</label>
+                <textarea id="description" class="w-full p-3 rounded-xl bg-gray-800 border border-gray-700 text-white focus:border-indigo-500 outline-none" rows="3" required placeholder="Describe lo que ofreces..."></textarea>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
                 <div>
-                    <label class="block text-sm text-gray-400 mb-1">Categoría</label>
-                    <select id="category" class="w-full p-3 rounded-xl bg-gray-800 border border-gray-700 text-white">
-                        <option>Electricistas</option>
-                        <option>Plomeros</option>
-                        <option>Técnicos de Aire</option>
-                        <option>Pintores</option>
-                        <option>Limpieza</option>
-                        <option>Otros</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-sm text-gray-400 mb-1">Descripción corta</label>
-                    <textarea id="description" class="w-full p-3 rounded-xl bg-gray-800 border border-gray-700 text-white" rows="3" required placeholder="¿Qué ofreces?"></textarea>
-                </div>
-                <div>
-                    <label class="block text-sm text-gray-400 mb-1">WhatsApp (Ej: 8091234567)</label>
-                    <input type="number" id="whatsapp" class="w-full p-3 rounded-xl bg-gray-800 border border-gray-700 text-white" required>
+                    <label class="block text-sm text-gray-400 mb-1">WhatsApp</label>
+                    <input type="number" id="whatsapp" class="w-full p-3 rounded-xl bg-gray-800 border border-gray-700 text-white focus:border-indigo-500 outline-none" required placeholder="8091234567">
                 </div>
                 <div>
                     <label class="block text-sm text-gray-400 mb-1">Ubicación</label>
-                    <input type="text" id="location" class="w-full p-3 rounded-xl bg-gray-800 border border-gray-700 text-white" required placeholder="Ej: Santo Domingo Este">
+                    <input type="text" id="location" class="w-full p-3 rounded-xl bg-gray-800 border border-gray-700 text-white focus:border-indigo-500 outline-none" required placeholder="Ej: Santiago">
                 </div>
-                <div>
-                    <label class="block text-sm text-gray-400 mb-1">URL de Imagen (Link de foto)</label>
-                    <input type="url" id="image" class="w-full p-3 rounded-xl bg-gray-800 border border-gray-700 text-white" required placeholder="https://imagen.com/foto.jpg">
-                </div>
-                <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 py-4 rounded-xl font-bold text-lg transition shadow-lg shadow-indigo-500/20">
-                    Publicar Anuncio
-                </button>
-            </form>
-        </div>
+            </div>
+            <div>
+                <label class="block text-sm text-gray-400 mb-1">Link de Imagen (URL)</label>
+                <input type="url" id="image" class="w-full p-3 rounded-xl bg-gray-800 border border-gray-700 text-white focus:border-indigo-500 outline-none" required placeholder="https://tu-imagen.jpg">
+            </div>
+            <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 py-4 rounded-xl font-bold text-lg transition shadow-lg shadow-indigo-500/20">
+                Publicar Ahora
+            </button>
+        </form>
     </div>
+</div>
 
-    <script>
-        let allServices = [];
+<script>
+    // Configuración
+    const categories = [
+        "Todos", "Electricistas", "Plomeros", "Técnicos de Aire", 
+        "Cerrajeros", "Pintores", "Handyman", "Limpieza", 
+        "Cámaras de Seguridad", "Electrodomésticos", "Jardinería"
+    ];
 
-        async function fetchServices() {
-            try {
-                const res = await fetch('/api/services');
-                allServices = await res.json();
-                renderCards(allServices);
-            } catch (err) {
-                console.error("Error al cargar:", err);
-            }
+    let allServices = [];
+    let currentCategory = "Todos";
+
+    // Inicializar App
+    function init() {
+        renderCategories();
+        fillSelect();
+        fetchServices();
+    }
+
+    // Dibujar botones de categorías en el Sidebar
+    function renderCategories() {
+        const list = document.getElementById('categoryList');
+        list.innerHTML = categories.map(cat => `
+            <button onclick="setCategory('${cat}')" 
+                class="sidebar-btn w-full text-left px-4 py-3 flex items-center text-sm font-medium ${currentCategory === cat ? 'active' : 'text-gray-400'}">
+                <i class="fas ${getIcon(cat)} mr-3 w-5"></i>
+                ${cat}
+            </button>
+        `).join('');
+    }
+
+    function getIcon(cat) {
+        const icons = {
+            "Todos": "fa-th-large", "Electricistas": "fa-bolt", "Plomeros": "fa-faucet",
+            "Técnicos de Aire": "fa-snowflake", "Cerrajeros": "fa-key", "Pintores": "fa-paint-roller",
+            "Limpieza": "fa-broom", "Cámaras de Seguridad": "fa-video", "Jardinería": "fa-leaf"
+        };
+        return icons[cat] || "fa-tools";
+    }
+
+    function fillSelect() {
+        const select = document.getElementById('category');
+        select.innerHTML = categories.filter(c => c !== "Todos").map(c => `<option value="${c}">${c}</option>`).join('');
+    }
+
+    async function fetchServices() {
+        try {
+            const res = await fetch('/api/services');
+            allServices = await res.json();
+            filterServices();
+        } catch (err) {
+            console.error("Error cargando servicios:", err);
         }
+    }
 
-        function renderCards(data) {
-            const grid = document.getElementById('servicesGrid');
-            grid.innerHTML = data.map(s => `
-                <div class="card glass rounded-3xl overflow-hidden border border-gray-800 flex flex-col">
-                    <img src="${s.image}" class="w-full h-52 object-cover" onerror="this.src='https://images.unsplash.com/photo-1581094794329-c8112a89af12?auto=format&fit=crop&q=80'">
-                    <div class="p-6 flex flex-col flex-grow">
-                        <span class="text-xs font-bold text-indigo-400 uppercase tracking-widest">${s.category}</span>
-                        <h3 class="text-xl font-bold mt-2 text-white">${s.name}</h3>
-                        <p class="text-gray-400 text-sm mt-3 flex-grow">${s.description}</p>
-                        <div class="mt-6 pt-4 border-t border-gray-700 flex items-center justify-between">
-                            <span class="text-sm text-gray-400"><i class="fas fa-map-marker-alt mr-2"></i>${s.location}</span>
-                            <a href="https://wa.me/${s.whatsapp}" target="_blank" class="bg-green-600 hover:bg-green-700 p-2 px-4 rounded-xl text-white font-bold text-sm transition">
-                                <i class="fab fa-whatsapp mr-2"></i>WhatsApp
-                            </a>
+    function setCategory(cat) {
+        currentCategory = cat;
+        document.getElementById('currentCategoryTitle').textContent = cat;
+        renderCategories();
+        filterServices();
+    }
+
+    function filterServices() {
+        const query = document.getElementById('searchInput').value.toLowerCase();
+        const filtered = allServices.filter(s => {
+            const matchCat = currentCategory === "Todos" || s.category === currentCategory;
+            const matchSearch = s.name.toLowerCase().includes(query) || s.description.toLowerCase().includes(query);
+            return matchCat && matchSearch;
+        });
+        renderCards(filtered);
+    }
+
+    function renderCards(data) {
+        const grid = document.getElementById('servicesGrid');
+        if(data.length === 0) {
+            grid.innerHTML = `<div class="col-span-full text-center py-20 text-gray-500">No se encontraron servicios en esta categoría.</div>`;
+            return;
+        }
+        grid.innerHTML = data.map(s => `
+            <div class="card-glass rounded-3xl overflow-hidden flex flex-col h-full shadow-xl">
+                <div class="relative">
+                    <img src="${s.image}" class="w-full h-48 object-cover" onerror="this.src='https://images.unsplash.com/photo-1581094794329-c8112a89af12?q=80'">
+                    <span class="absolute top-3 left-3 bg-indigo-600/90 backdrop-blur-md px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider">
+                        ${s.category}
+                    </span>
+                </div>
+                <div class="p-5 flex flex-col flex-grow">
+                    <h3 class="text-xl font-bold text-white mb-2">${s.name}</h3>
+                    <p class="text-gray-400 text-sm line-clamp-3 mb-4 flex-grow">${s.description}</p>
+                    <div class="space-y-2 mb-5">
+                        <div class="flex items-center text-xs text-gray-400">
+                            <i class="fas fa-map-marker-alt w-5 text-indigo-500"></i> ${s.location}
+                        </div>
+                        <div class="flex items-center text-xs text-gray-400">
+                            <i class="fas fa-phone w-5 text-indigo-500"></i> ${s.whatsapp}
                         </div>
                     </div>
+                    <a href="https://wa.me/${s.whatsapp}" target="_blank" 
+                       class="bg-green-600 hover:bg-green-700 w-full py-3 rounded-xl text-center text-white font-bold text-sm transition">
+                       <i class="fab fa-whatsapp mr-2"></i>Contactar WhatsApp
+                    </a>
                 </div>
-            `).join('');
-        }
+            </div>
+        `).join('');
+    }
 
-        document.getElementById('serviceForm').onsubmit = async (e) => {
-            e.preventDefault();
-            const serviceData = {
-                name: document.getElementById('name').value,
-                category: document.getElementById('category').value,
-                description: document.getElementById('description').value,
-                location: document.getElementById('location').value,
-                whatsapp: document.getElementById('whatsapp').value,
-                image: document.getElementById('image').value
-            };
+    // Enviar Formulario al Backend en Render
+    document.getElementById('serviceForm').onsubmit = async (e) => {
+        e.preventDefault();
+        const btn = e.target.querySelector('button');
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Publicando...';
+        btn.disabled = true;
 
+        const serviceData = {
+            name: document.getElementById('name').value,
+            category: document.getElementById('category').value,
+            description: document.getElementById('description').value,
+            location: document.getElementById('location').value,
+            whatsapp: document.getElementById('whatsapp').value,
+            image: document.getElementById('image').value
+        };
+
+        try {
             await fetch('/api/services', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(serviceData)
             });
-
             toggleModal();
             fetchServices();
             e.target.reset();
-        };
-
-        function search() {
-            const query = document.getElementById('searchInput').value.toLowerCase();
-            const filtered = allServices.filter(s => 
-                s.name.toLowerCase().includes(query) || 
-                s.category.toLowerCase().includes(query) ||
-                s.description.toLowerCase().includes(query)
-            );
-            renderCards(filtered);
+        } catch (err) {
+            alert("Error al publicar. Verifica tu conexión.");
+        } finally {
+            btn.innerHTML = 'Publicar Ahora';
+            btn.disabled = false;
         }
+    };
 
-        function toggleModal() {
-            document.getElementById('modal').classList.toggle('hidden');
-        }
+    function toggleModal() {
+        document.getElementById('modal').classList.toggle('hidden');
+    }
 
-        fetchServices();
-    </script>
+    // Iniciar
+    init();
+</script>
 </body>
 </html>
