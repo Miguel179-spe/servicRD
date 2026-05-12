@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Servicios RD | Publica tu Anuncio</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body { background-color: #0f1115; color: white; font-family: sans-serif; }
+        .glass { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); }
+        .card:hover { transform: translateY(-5px); transition: 0.3s; border-color: #6366f1; }
+    </style>
+</head>
+<body>
+
+    <!-- NAVBAR -->
+    <nav class="p-5 glass sticky top-0 z-50 mb-8">
+        <div class="max-w-6xl mx-auto flex justify-between items-center">
+            <h1 class="text-2xl font-black bg-gradient-to-r from-indigo-500 to-purple-500 bg-clip-text text-transparent">
+                SERVICIOS RD
+            </h1>
+            <button onclick="toggleModal()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2 rounded-full font-bold transition">
+                <i class="fas fa-plus-circle mr-2"></i>Publicar
+            </button>
+        </div>
+    </nav>
+
+    <main class="max-w-6xl mx-auto px-4 pb-20">
+        <!-- BUSCADOR -->
+        <div class="mb-10">
+            <input type="text" id="searchInput" onkeyup="search()" placeholder="¿Qué servicio buscas? (Ej: Plomero, Pintor...)" 
+                class="w-full p-4 rounded-2xl bg-gray-800 border border-gray-700 text-white focus:ring-2 focus:ring-indigo-500 outline-none">
+        </div>
+
+        <!-- GRILLA DE SERVICIOS -->
+        <div id="servicesGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <!-- Cargando... -->
+            <p class="text-center col-span-full text-gray-500">Cargando anuncios...</p>
+        </div>
+    </main>
+
+    <!-- MODAL FORMULARIO -->
+    <div id="modal" class="fixed inset-0 bg-black/90 hidden z-[100] flex items-center justify-center p-4">
+        <div class="bg-gray-900 border border-gray-700 p-8 rounded-3xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold">Crea tu publicación</h2>
+                <button onclick="toggleModal()" class="text-gray-400 hover:text-white text-2xl">&times;</button>
+            </div>
+            
+            <form id="serviceForm" class="space-y-4">
+                <div>
+                    <label class="block text-sm text-gray-400 mb-1">Nombre del Servicio o Negocio</label>
+                    <input type="text" id="name" class="w-full p-3 rounded-xl bg-gray-800 border border-gray-700 text-white" required placeholder="Ej: Multiservicios Juan">
+                </div>
+                <div>
+                    <label class="block text-sm text-gray-400 mb-1">Categoría</label>
+                    <select id="category" class="w-full p-3 rounded-xl bg-gray-800 border border-gray-700 text-white">
+                        <option>Electricistas</option>
+                        <option>Plomeros</option>
+                        <option>Técnicos de Aire</option>
+                        <option>Pintores</option>
+                        <option>Limpieza</option>
+                        <option>Otros</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm text-gray-400 mb-1">Descripción corta</label>
+                    <textarea id="description" class="w-full p-3 rounded-xl bg-gray-800 border border-gray-700 text-white" rows="3" required placeholder="¿Qué ofreces?"></textarea>
+                </div>
+                <div>
+                    <label class="block text-sm text-gray-400 mb-1">WhatsApp (Ej: 8091234567)</label>
+                    <input type="number" id="whatsapp" class="w-full p-3 rounded-xl bg-gray-800 border border-gray-700 text-white" required>
+                </div>
+                <div>
+                    <label class="block text-sm text-gray-400 mb-1">Ubicación</label>
+                    <input type="text" id="location" class="w-full p-3 rounded-xl bg-gray-800 border border-gray-700 text-white" required placeholder="Ej: Santo Domingo Este">
+                </div>
+                <div>
+                    <label class="block text-sm text-gray-400 mb-1">URL de Imagen (Link de foto)</label>
+                    <input type="url" id="image" class="w-full p-3 rounded-xl bg-gray-800 border border-gray-700 text-white" required placeholder="https://imagen.com/foto.jpg">
+                </div>
+                <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 py-4 rounded-xl font-bold text-lg transition shadow-lg shadow-indigo-500/20">
+                    Publicar Anuncio
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let allServices = [];
+
+        async function fetchServices() {
+            try {
+                const res = await fetch('/api/services');
+                allServices = await res.json();
+                renderCards(allServices);
+            } catch (err) {
+                console.error("Error al cargar:", err);
+            }
+        }
+
+        function renderCards(data) {
+            const grid = document.getElementById('servicesGrid');
+            grid.innerHTML = data.map(s => `
+                <div class="card glass rounded-3xl overflow-hidden border border-gray-800 flex flex-col">
+                    <img src="${s.image}" class="w-full h-52 object-cover" onerror="this.src='https://images.unsplash.com/photo-1581094794329-c8112a89af12?auto=format&fit=crop&q=80'">
+                    <div class="p-6 flex flex-col flex-grow">
+                        <span class="text-xs font-bold text-indigo-400 uppercase tracking-widest">${s.category}</span>
+                        <h3 class="text-xl font-bold mt-2 text-white">${s.name}</h3>
+                        <p class="text-gray-400 text-sm mt-3 flex-grow">${s.description}</p>
+                        <div class="mt-6 pt-4 border-t border-gray-700 flex items-center justify-between">
+                            <span class="text-sm text-gray-400"><i class="fas fa-map-marker-alt mr-2"></i>${s.location}</span>
+                            <a href="https://wa.me/${s.whatsapp}" target="_blank" class="bg-green-600 hover:bg-green-700 p-2 px-4 rounded-xl text-white font-bold text-sm transition">
+                                <i class="fab fa-whatsapp mr-2"></i>WhatsApp
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        document.getElementById('serviceForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const serviceData = {
+                name: document.getElementById('name').value,
+                category: document.getElementById('category').value,
+                description: document.getElementById('description').value,
+                location: document.getElementById('location').value,
+                whatsapp: document.getElementById('whatsapp').value,
+                image: document.getElementById('image').value
+            };
+
+            await fetch('/api/services', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(serviceData)
+            });
+
+            toggleModal();
+            fetchServices();
+            e.target.reset();
+        };
+
+        function search() {
+            const query = document.getElementById('searchInput').value.toLowerCase();
+            const filtered = allServices.filter(s => 
+                s.name.toLowerCase().includes(query) || 
+                s.category.toLowerCase().includes(query) ||
+                s.description.toLowerCase().includes(query)
+            );
+            renderCards(filtered);
+        }
+
+        function toggleModal() {
+            document.getElementById('modal').classList.toggle('hidden');
+        }
+
+        fetchServices();
+    </script>
+</body>
+</html>
